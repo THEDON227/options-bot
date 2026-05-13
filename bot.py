@@ -138,7 +138,21 @@ def run_bot():
         if positions:
             log(f"Open Alpaca positions: {len(positions)}")
             for p in positions:
-                log(f"  {p['symbol']} | qty: {p['qty']} | P&L: ${float(p.get('unrealized_pl', 0)):.2f}")
+                if isinstance(p, dict):
+                    symbol = p.get("symbol", "UNKNOWN")
+                    qty = p.get("qty", "N/A")
+                    unrealized_pl = p.get("unrealized_pl", 0)
+                else:
+                    symbol = getattr(p, "symbol", "UNKNOWN")
+                    qty = getattr(p, "qty", "N/A")
+                    unrealized_pl = getattr(p, "unrealized_pl", 0)
+
+                try:
+                    unrealized_pl = float(unrealized_pl)
+                except Exception:
+                    unrealized_pl = 0
+
+                log(f"  {symbol} | qty: {qty} | P&L: ${unrealized_pl:.2f}")
         else:
             log("No open Alpaca positions.")
 
