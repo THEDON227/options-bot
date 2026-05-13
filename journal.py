@@ -50,9 +50,16 @@ def log_trade(
 
     c.execute("""
     INSERT INTO trades (
-        symbol, strategy, option_type, strike,
-        expiry, contracts, entry_price,
-        stop_loss, profit_target, notes
+        symbol,
+        strategy,
+        option_type,
+        strike,
+        expiry,
+        contracts,
+        entry_price,
+        stop_loss,
+        profit_target,
+        notes
     )
     VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
     RETURNING id
@@ -81,7 +88,8 @@ def get_all_trades():
     c = conn.cursor(cursor_factory=RealDictCursor)
 
     c.execute("""
-    SELECT * FROM trades
+    SELECT *
+    FROM trades
     ORDER BY created_at DESC
     """)
 
@@ -90,3 +98,34 @@ def get_all_trades():
     conn.close()
 
     return rows
+
+def close_trade(trade_id, pnl=0):
+    conn = connect()
+    c = conn.cursor()
+
+    c.execute("""
+    UPDATE trades
+    SET status = %s,
+        pnl = %s
+    WHERE id = %s
+    """, ("closed", pnl, trade_id))
+
+    conn.commit()
+    conn.close()
+
+def show_trades():
+    trades = get_all_trades()
+
+    print()
+    print("ID | Symbol | Type | Strike | Status | P&L")
+    print("-" * 60)
+
+    for t in trades:
+        print(
+            f"{t['id']} | "
+            f"{t['symbol']} | "
+            f"{t['option_type']} | "
+            f"{t['strike']} | "
+            f"{t['status']} | "
+            f"{t['pnl']}"
+        )
