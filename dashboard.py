@@ -1,6 +1,7 @@
 import os
 from flask import Flask, render_template_string
 import sqlite3
+from journal import init_db
 import json
 
 app = Flask(__name__)
@@ -8,6 +9,7 @@ DB_PATH = "trades.db"
 ACCOUNT_SIZE = 25000.00
 
 def get_trades():
+    init_db()
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
