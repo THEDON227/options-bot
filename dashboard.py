@@ -100,25 +100,6 @@ HTML = """
 """
 
 
-@app.route("/test-log-trade")
-def test_log_trade():
-    from journal import init_db, log_trade
-    init_db()
-    trade_id = log_trade(
-        symbol="AAPL",
-        strategy="Momentum Breakout",
-        option_type="CALL",
-        strike=190,
-        expiry="2026-06-20",
-        contracts=1,
-        entry_price=2.50,
-        stop_loss=1.50,
-        profit_target=5.00,
-        notes="Live Railway dashboard test trade"
-    )
-    return f"Test trade created: {trade_id}"
-
-
 @app.route("/")
 def index():
     trades = get_trades()
