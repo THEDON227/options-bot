@@ -158,17 +158,27 @@ def run_bot():
     )
 
     scan_count = 0
+    session_started_today = None
+    session_ended_today = None
 
     while True:
 
-        if not market_is_open():
-            log("Market closed. Sleeping.")
-            time.sleep(300)
-            continue
+        today = datetime.utcnow().strftime("%Y-%m-%d")
 
-        manage_positions()
+        if market_is_open():
 
-        scan_count += 1
+            if session_started_today != today:
+                send_alert(
+                    "MARKET SESSION STARTED\n\n"
+                    "Bot is online and scanning every 5 minutes.\n"
+                    "Mode: Paper Trading\n"
+                    "Status: Active"
+                )
+                session_started_today = today
+
+            manage_positions()
+
+            scan_count += 1
 
         log(f"Starting scan #{scan_count}")
 
@@ -242,6 +252,40 @@ def run_bot():
         log(f"Next scan in {SCAN_INTERVAL // 60} minutes")
 
         time.sleep(SCAN_INTERVAL)
+
+        else:
+
+            if session_ended_today != today and session_started_today == today:
+                trades = get_all_trades()
+
+                today_trades = [
+                    t for t in trades
+                    if str(t.get("created_at", "")).startswith(today)
+                ]
+
+                closed_trades = [
+                    t for t in today_trades
+                    if t.get("status") == "closed"
+                ]
+
+                total_pnl = sum(float(t.get("pnl") or 0) for t in closed_trades)
+                wins = len([t for t in closed_trades if float(t.get("pnl") or 0) > 0])
+                losses = len([t for t in closed_trades if float(t.get("pnl") or 0) < 0])
+
+                send_alert(
+                    "MARKET SESSION ENDED\n\n"
+                    f"Trades Today: {len(today_trades)}\n"
+                    f"Closed Trades: {len(closed_trades)}\n"
+                    f"Wins: {wins}\n"
+                    f"Losses: {losses}\n"
+                    f"Daily P&L: ${total_pnl:.2f}\n\n"
+                    "Bot is now in overnight standby mode."
+                )
+
+                session_ended_today = today
+
+            log("Market closed. Sleeping.")
+            time.sleep(300)
 
 if __name__ == "__main__":
     run_bot()
