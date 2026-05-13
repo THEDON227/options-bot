@@ -13,7 +13,7 @@ load_dotenv()
 
 ACCOUNT_SIZE  = 25000.00
 WATCHLIST = ["AAPL", "MSFT", "NVDA", "SPY", "QQQ", "TSLA", "AMZN", "SPX"]
-SCAN_INTERVAL = 3600
+SCAN_INTERVAL = 300
 rm = RiskManager(account_size=ACCOUNT_SIZE)
 
 def log(msg):
